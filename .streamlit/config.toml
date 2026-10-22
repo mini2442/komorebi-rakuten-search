@@ -1,0 +1,9 @@
+[theme]
+primaryColor="#b76e8b"
+backgroundColor="#fffdf6"
+secondaryBackgroundColor="#f9e9ed"
+textColor="#624f56"
+[server]
+address="0.0.0.0"
+enableCORS=true
+enableXsrfProtection=true
