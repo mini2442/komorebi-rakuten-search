@@ -2,6 +2,11 @@ import unittest
 from datetime import datetime, timezone
 from unittest.mock import patch
 from streamlit.testing.v1 import AppTest
+from room_manager.cards import card_title_html
+
+def card_titles(at):
+    return [m.value for m in at.markdown if m.value.startswith('<h3 class="product-title"')]
+
 from room_manager.seasons import resolve_season, prioritize_season
 import test_public
 SECRETS, ITEM = test_public.SECRETS, test_public.ITEM
@@ -38,13 +43,13 @@ class SeasonUITests(unittest.TestCase):
         get.assert_not_called()
         at.button[0].click().run()
         self.assertFalse(at.exception)
-        self.assertEqual([h.value for h in at.subheader],['長袖ニット','半袖'])
+        self.assertEqual(card_titles(at),[card_title_html(name) for name in ['長袖ニット','半袖']])
         self.assertEqual(get.call_count,1)
         next(s for s in at.selectbox if s.label=='季節').set_value('冬').run()
-        self.assertFalse(at.subheader)
+        self.assertFalse(card_titles(at))
         self.assertEqual(get.call_count,1)
         at.button[1].click().run()
-        self.assertEqual([h.value for h in at.subheader],['半袖','長袖ニット'])
+        self.assertEqual(card_titles(at),[card_title_html(name) for name in ['半袖','長袖ニット']])
         self.assertEqual(get.call_count,2)
         at.selectbox[0].set_value('韓国コスメ・美容').run()
         self.assertFalse(any(s.label=='季節' for s in at.selectbox))

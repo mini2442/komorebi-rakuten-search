@@ -4,6 +4,7 @@ from urllib.parse import urlsplit
 from room_manager.rakuten_settings import provider_from_secrets
 from room_manager.seasons import SEASONS, resolve_season, prioritize_season
 from room_manager.reviews import RATINGS, COUNTS, filter_reviews
+from room_manager.cards import TITLE_STYLE, card_title_html
 
 CATEGORIES = {
     'プチプラファッション': ('100371', 'レディース', 5000),
@@ -44,6 +45,7 @@ def show_value(value, suffix=''):
 def main():
     st.set_page_config(page_title='こもれび 商品さがし', page_icon='🌷', layout='centered')
     st.markdown('<style>.stButton button,.stLinkButton a{min-height:48px;border-radius:14px}.block-container{max-width:850px}h1,h2,h3{color:#9c5870}</style>', unsafe_allow_html=True)
+    st.markdown(TITLE_STYLE, unsafe_allow_html=True)
     st.title('🌷 こもれび 商品さがし')
     st.caption('楽天市場の商品検索・ランキング。楽天グループが運営するサービスではありません。')
     st.caption('個人の投稿・下書きは扱いません。検索欄に個人情報を入力しないでください。')
@@ -62,7 +64,7 @@ def main():
     if category == 'プチプラファッション':
         selection = st.selectbox('季節', SEASONS, key='fashion_season')
         season = resolve_season(selection)
-        st.caption(('日本時間の月で自動選択：' + season + '。' if selection == '自動' else '') + '商品検索では、今回取得した商品の名前にある季節・衣類の表記を参考に並べ替えます。完全除外はせず、季節への適合を保証するものではありません。ランキングは公式の順番を維持します。')
+        st.caption(('日本時間の月で自動選択：' + season + '。' if selection == '自動' else '') + '季節判定は商品名の表記からの推定です。今回取得した範囲で、ニット・カーディガン・季節の羽織りなどを参考に並べ替えます。完全除外はせず、季節への適合を保証するものではありません。ランキングは公式の順番を維持します。')
     if fashion:
         new_mode = st.checkbox('新着商品モード', key='fashion_new_mode')
         min_rating = st.selectbox('レビュー評価', RATINGS, index=1, format_func=lambda v: f'★{v:.1f}以上', disabled=new_mode, key='min_rating')
@@ -106,7 +108,7 @@ def main():
         st.caption(season + '向けの表記がある商品を優先しています（今回の取得結果内での参考順）。')
     for product in st.session_state.get('public_results', []):
         with st.container(border=True):
-            st.subheader(product['name'])
+            st.markdown(card_title_html(product['name']), unsafe_allow_html=True)
             image_url = safe_image_url(product.get('image_url'))
             if image_url:
                 st.image(image_url, width=128)
@@ -121,7 +123,7 @@ def main():
             else:
                 st.warning('商品リンクの形式を確認できません。表示を見合わせています。')
             st.caption('出典：' + product['source'] + ' ／ 取得日時：' + product['fetched_at'])
-            st.caption('価格・在庫・送料・仕様は購入前に楽天の商品ページでご確認ください。')
+            st.caption('正式な商品名・価格・在庫・送料・仕様は楽天の商品ページでご確認ください。')
     st.caption('自動取得・自動再試行はありません。1プロセス全体で10回/分・100回/時まで、最低1.1秒間隔です。再起動で上限記録はリセットされます。')
     st.caption('検索結果をDBやファイルに保存する機能・一括出力機能はありません。')
     if st.session_state.get('result_context') == context and 'public_results' in st.session_state:

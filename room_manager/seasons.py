@@ -5,10 +5,10 @@ from .domain import JST
 
 SEASONS = ('自動', '春', '夏', '秋', '冬', 'すべて')
 TERMS = {
-    '春': ('春', 'カーディガン', 'ブラウス', '薄手', '長袖', 'トレンチ'),
-    '夏': ('夏', '半袖', 'ノースリーブ', 'タンクトップ', 'リネン', '麻'),
-    '秋': ('秋', 'ニット', 'カーディガン', '長袖', 'スウェット', 'ジャケット'),
-    '冬': ('冬', 'ニット', 'コート', 'ダウン', '裏起毛', '防寒', '厚手'),
+    '春': {'春': 3, 'カーディガン': 6, 'ブラウス': 4, '薄手': 2, '長袖': 2, 'トレンチ': 6, '羽織': 4},
+    '夏': {'夏': 3, '半袖': 5, 'ノースリーブ': 5, 'タンクトップ': 5, 'リネン': 3, '麻': 2, 'UV': 4, '冷感': 4},
+    '秋': {'秋': 3, 'ニット': 8, 'カーディガン': 8, '長袖': 2, 'スウェット': 4, 'ジャケット': 6, '羽織': 6, 'ブルゾン': 6},
+    '冬': {'冬': 3, 'ニット': 6, 'コート': 8, 'ダウン': 8, '裏起毛': 6, '防寒': 6, '厚手': 4},
 }
 
 
@@ -27,9 +27,11 @@ def prioritize_season(products, season):
         return list(products)
     def score(product):
         name = unicodedata.normalize('NFKC', product.get('name') or '')
-        points = sum(2 for term in TERMS.get(season, ()) if term in name)
+        points = sum(weight for term, weight in TERMS.get(season, {}).items() if term in name)
         if season in ('秋', '冬'):
-            points -= sum(4 for term in ('半袖', 'ノースリーブ', 'タンクトップ', 'キャミソール') if term in name)
+            points -= sum(8 for term in ('半袖', 'ノースリーブ', 'タンクトップ', 'キャミソール') if term in name)
+            if any(term in name for term in ('UV', 'uv', '紫外線', '日焼け', 'サマー', '接触冷感', 'ひんやり')):
+                points -= 8
         elif season == '夏':
             points -= sum(4 for term in ('裏起毛', '防寒', 'ダウン', '厚手') if term in name)
         return points

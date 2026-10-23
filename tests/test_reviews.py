@@ -1,6 +1,11 @@
 import unittest
 from unittest.mock import patch
 from streamlit.testing.v1 import AppTest
+from room_manager.cards import card_title_html
+
+def card_titles(at):
+    return [m.value for m in at.markdown if m.value.startswith('<h3 class="product-title"')]
+
 from room_manager.reviews import filter_reviews
 import test_public
 
@@ -32,15 +37,15 @@ class ReviewUITests(unittest.TestCase):
         self.assertEqual(next(s for s in at.selectbox if s.label=='レビュー件数').value,100)
         get.assert_not_called()
         at.button[0].click().run()
-        self.assertEqual([h.value for h in at.subheader],['ニット'])
+        self.assertEqual(card_titles(at),[card_title_html(name) for name in ['ニット']])
         self.assertEqual(get.call_args.kwargs['params']['sort'],'-reviewCount')
         self.assertTrue(any('2件のうち1件' in c.value for c in at.caption))
         next(s for s in at.selectbox if s.label=='レビュー件数').set_value(300).run()
-        self.assertFalse(at.subheader)
+        self.assertFalse(card_titles(at))
         self.assertEqual(get.call_count,1)
         at.button[0].click().run()
         self.assertTrue(any('0件' in i.value for i in at.info))
-        self.assertFalse(at.subheader)
+        self.assertFalse(card_titles(at))
         self.assertTrue(any('Supported by Rakuten Developers' in m.value for m in at.markdown))
         at.checkbox[0].check().run()
         self.assertTrue(next(s for s in at.selectbox if s.label=='レビュー評価').disabled)
@@ -48,11 +53,11 @@ class ReviewUITests(unittest.TestCase):
         self.assertEqual(get.call_count,2)
         at.button[0].click().run()
         self.assertEqual(get.call_args.kwargs['params']['sort'],'-updateTimestamp')
-        self.assertEqual(len(at.subheader),2)
+        self.assertEqual(len(card_titles(at)),2)
         self.assertTrue(any('発売日' in c.value for c in at.caption))
         at.button[1].click().run()
         self.assertIn('ichibaranking',get.call_args.args[0])
         self.assertNotIn('sort',get.call_args.kwargs['params'])
-        self.assertEqual(len(at.subheader),2)
+        self.assertEqual(len(card_titles(at)),2)
         self.assertEqual(get.call_count,4)
         self.assertFalse(at.exception)
