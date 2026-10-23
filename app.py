@@ -2,6 +2,7 @@
 import streamlit as st
 from urllib.parse import urlsplit
 from room_manager.rakuten_settings import provider_from_secrets
+from room_manager.seasons import SEASONS, resolve_season, prioritize_season
 
 CATEGORIES = {
     'プチプラファッション': ('100371', 'レディース', 5000),
@@ -54,7 +55,12 @@ def main():
     category = st.selectbox('ジャンル', list(CATEGORIES))
     genre, default_keyword, price = CATEGORIES[category]
     keyword = st.text_input('探したい商品', default_keyword, max_chars=128, key='keyword_'+category)
-    context = (category, keyword)
+    season = 'すべて'
+    if category == 'プチプラファッション':
+        selection = st.selectbox('季節', SEASONS, key='fashion_season')
+        season = resolve_season(selection)
+        st.caption(('日本時間の月で自動選択：' + season + '。' if selection == '自動' else '') + '商品検索では、今回取得した商品の名前にある季節・衣類の表記を参考に並べ替えます。完全除外はせず、季節への適合を保証するものではありません。ランキングは公式の順番を維持します。')
+    context = (category, keyword, season)
     if not ready or st.session_state.get('result_context') != context:
         st.session_state.pop('public_results', None)
     st.caption('検索は各テーマのキーワードで絞ります。ランキングは公式ジャンル全体で、韓国製・価格帯などを保証しません。')
@@ -66,11 +72,16 @@ def main():
         try:
             with st.spinner('商品を確認しています…'):
                 result = provider.search(keyword, genre_id=genre, max_price=price) if search else provider.ranking(genre)
+            if search and season != 'すべて':
+                result = prioritize_season(result, season)
             st.session_state['public_results'] = result
+            st.session_state['public_result_kind'] = 'search' if search else 'ranking'
             if not result:
                 st.info('該当商品は0件でした。検索条件を変えてお試しください。')
         except ValueError as error:
             st.error(str(error))
+    if st.session_state.get('public_results') and st.session_state.get('public_result_kind') == 'search' and season != 'すべて':
+        st.caption(season + '向けの表記がある商品を優先しています（今回の取得結果内での参考順）。')
     for product in st.session_state.get('public_results', []):
         with st.container(border=True):
             st.subheader(product['name'])

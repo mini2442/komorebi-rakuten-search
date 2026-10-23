@@ -48,3 +48,11 @@ https://webservice.rakuten.co.jp/guide/rule
 https://webservice.rakuten.co.jp/guide/credit
 https://webservice.rakuten.co.jp/documentation/ichiba-item-search
 https://webservice.rakuten.co.jp/documentation/ichiba-item-ranking
+
+## 季節の優先表示
+
+ファッションの商品検索で「自動・春・夏・秋・冬・すべて」を選べます。自動は日本時間の月で判定します。
+取得した最大30件の商品名の表記で参考順に並べ替え、追加API通信・除外・仕様推測はしません。
+秋冬はニットや長袖などを優先し、半袖などの優先度を下げます。季節語の多い商品名などでは誤判定もあります。
+季節の適合を保証するものではありません。「すべて」はAPI取得順、ランキングは常に公式順です。
+季節変更時は前の結果を消し、検索ボタンを押したときだけ再取得します。
