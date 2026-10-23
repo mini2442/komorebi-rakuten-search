@@ -9,7 +9,7 @@ from room_manager import providers
 from room_manager.rakuten_settings import provider_from_secrets
 
 SECRETS = {'RAKUTEN_APPLICATION_ID':'fake-private-id','RAKUTEN_ACCESS_KEY':'fake-private-key'}
-ITEM = dict(itemCode='demo:one',itemName='モック商品',itemUrl='https://item.rakuten.co.jp/demo/one/?x=1',itemPrice=1000,reviewCount=3,reviewAverage=4,rank=2)
+ITEM = dict(itemCode='demo:one',itemName='モック商品',itemUrl='https://item.rakuten.co.jp/demo/one/?x=1',itemPrice=1000,reviewCount=3,reviewAverage=4,rank=2,mediumImageUrls=[{'imageUrl':'https://thumbnail.image.rakuten.co.jp/mock/test.jpg'}])
 
 class PublicTests(unittest.TestCase):
     def setUp(self):
@@ -25,6 +25,7 @@ class PublicTests(unittest.TestCase):
         reply.json.return_value={'items':[copy.deepcopy(ITEM)] if items is None else items}
         return reply
 
+    @patch('room_manager.providers.LIVE_API_ENABLED',False)
     def test_hard_stop_all_routes_and_ui(self):
         p=provider_from_secrets(SECRETS)
         for call in (lambda:p.search('商品'),p.ranking,lambda:p.item('demo:one')):
@@ -95,7 +96,10 @@ class PublicTests(unittest.TestCase):
         self.assertTrue(all(b.disabled for b in at.button))
 
     def test_url_and_dependency_boundary(self):
-        from app import safe_product_link
+        from app import safe_product_link, safe_image_url
+        self.assertEqual(safe_image_url(ITEM["mediumImageUrls"][0]["imageUrl"]), ITEM["mediumImageUrls"][0]["imageUrl"])
+        self.assertIsNone(safe_image_url("https://evil.example/a.png"))
+        self.assertIsNone(safe_image_url(None))
         self.assertTrue(safe_product_link(ITEM['itemUrl']))
         for url in ('https://evil.example/','javascript:alert(1)','https://item.rakuten.co.jp@evil.example/'):
             self.assertFalse(safe_product_link(url))
@@ -104,4 +108,4 @@ class PublicTests(unittest.TestCase):
             text=path.read_text()
             self.assertNotIn('supabase',text.lower())
             self.assertNotIn('sqlite',text.lower())
-        self.assertFalse(providers.LIVE_API_ENABLED)
+        self.assertTrue(providers.LIVE_API_ENABLED)

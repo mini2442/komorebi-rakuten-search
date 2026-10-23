@@ -8,8 +8,8 @@ from urllib.parse import urlsplit, parse_qs
 from .domain import now, canonical_url
 from .rakuten_settings import RakutenSettings
 
-# この工程では環境変数・Secrets・画面操作から解除できない停止枠。
-LIVE_API_ENABLED = False
+# 公開検索専用。停止する場合はFalseへ戻す。Secrets・画面操作では切り替えない。
+LIVE_API_ENABLED = True
 
 # 同じPythonプロセスのセッション間でも最低間隔と429の待機を共有。
 _request_lock = threading.Lock()

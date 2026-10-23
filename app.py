@@ -23,6 +23,18 @@ def safe_product_link(url):
         return False
 
 
+
+def safe_image_url(url):
+    try:
+        p = urlsplit(url)
+        if (p.scheme == 'https' and p.hostname == 'thumbnail.image.rakuten.co.jp'
+                and not p.username and not p.password and p.port in (None, 443)):
+            return url
+    except (ValueError, TypeError):
+        pass
+    return None
+
+
 def show_value(value, suffix=''):
     return '未取得' if value is None or value == '' else str(value) + suffix
 
@@ -62,8 +74,11 @@ def main():
     for product in st.session_state.get('public_results', []):
         with st.container(border=True):
             st.subheader(product['name'])
-            # URL画像の追加取得・キャッシュを避ける。画像は次工程で検討。
-            st.caption('🌷 商品画像は楽天の商品ページで確認できます')
+            image_url = safe_image_url(product.get('image_url'))
+            if image_url:
+                st.image(image_url, width=128)
+            else:
+                st.caption('🌷 商品画像は未取得です。楽天の商品ページで確認できます')
             st.write('価格：' + show_value(product.get('price'), '円（取得時点）'))
             st.write('レビュー：' + show_value(product.get('reviews'), '件') + ' ／ 評価：' + show_value(product.get('rating')))
             st.write('ランキング順位：' + show_value(product.get('rank'), '位'))
