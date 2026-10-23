@@ -9,7 +9,7 @@ from room_manager import providers
 from room_manager.rakuten_settings import provider_from_secrets
 
 SECRETS = {'RAKUTEN_APPLICATION_ID':'fake-private-id','RAKUTEN_ACCESS_KEY':'fake-private-key'}
-ITEM = dict(itemCode='demo:one',itemName='モック商品',itemUrl='https://item.rakuten.co.jp/demo/one/?x=1',itemPrice=1000,reviewCount=3,reviewAverage=4,rank=2,mediumImageUrls=[{'imageUrl':'https://thumbnail.image.rakuten.co.jp/mock/test.jpg'}])
+ITEM = dict(itemCode='demo:one',itemName='モック商品',itemUrl='https://item.rakuten.co.jp/demo/one/?x=1',itemPrice=1000,reviewCount=100,reviewAverage=4.5,rank=2,mediumImageUrls=[{'imageUrl':'https://thumbnail.image.rakuten.co.jp/mock/test.jpg'}])
 
 class PublicTests(unittest.TestCase):
     def setUp(self):

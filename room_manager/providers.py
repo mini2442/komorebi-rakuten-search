@@ -30,10 +30,14 @@ class RakutenProvider:
     def permitted(self):
         return LIVE_API_ENABLED and self.enabled
 
-    def search(self, keyword, *, genre_id=None, max_price=None):
+    def search(self, keyword, *, genre_id=None, max_price=None, sort=None):
         if not keyword.strip():
             raise ValueError('検索キーワードを入力してください。')
         params = {'keyword': keyword.strip(), 'hits': 30, 'availability': 1}
+        if sort is not None:
+            if sort not in ('-reviewCount', '-reviewAverage', '-updateTimestamp'):
+                raise ValueError('並び替え条件を確認してください。')
+            params['sort'] = sort
         if genre_id:
             params['genreId'] = genre_id
         if max_price:
